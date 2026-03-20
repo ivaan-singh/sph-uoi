@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UOI – What You Eat Matters!</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05070d;
+    --green: #00ffb2;
+    --blue: #4d9fff;
+    --card-bg: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+    --worries: #ff6b6b;
+    --needs: #4d9fff;
+    --stance: #a78bfa;
+    --excited: #00ffb2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Syne', sans-serif;
+    color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Animated background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,178,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,178,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridShift 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes gridShift {
+    0% { transform: translate(0, 0); }
+    100% { transform: translate(60px, 60px); }
+  }
+
+  .cg { position: fixed; border-radius: 50%; filter: blur(120px); opacity: 0.08; pointer-events: none; z-index: 0; }
+  .cg1 { width: 500px; height: 500px; background: var(--green); top: -150px; left: -150px; }
+  .cg2 { width: 400px; height: 400px; background: var(--blue); bottom: -120px; right: -120px; }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 60px;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--green);
+    border: 1px solid var(--green);
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(0,255,178,0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(0,255,178,0); }
+  }
+
+  h1 {
+    font-size: clamp(2.2rem, 6vw, 4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 30%, var(--green) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 12px;
+  }
+
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: rgba(255,255,255,0.4);
+    letter-spacing: 1px;
+  }
+
+  /* Section label */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeIn 0.8s 0.3s ease both;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--blue), transparent);
+  }
+
+  /* Info strip */
+  .info-strip {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 56px;
+    flex-wrap: wrap;
+    animation: fadeIn 0.8s 0.4s ease both;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .info-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    flex: 1;
+    min-width: 140px;
+    transition: all 0.3s ease;
+  }
+  .info-card:hover {
+    border-color: var(--green);
+    background: rgba(0,255,178,0.05);
+    transform: translateY(-3px);
+  }
+  .info-card .label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 6px;
+  }
+  .info-card .value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  /* Compass Points Grid — matches original image layout */
+  .compass-wrapper {
+    position: relative;
+    animation: fadeIn 0.8s 0.6s ease both;
+    margin-bottom: 60px;
+  }
+
+  .compass-title {
+    text-align: center;
+    margin-bottom: 0;
+  }
+  .compass-title .tag {
+    display: inline-block;
+    background: linear-gradient(135deg, #ffd700, #ff9500);
+    color: #000;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 8px 24px;
+    box-shadow: 0 0 30px rgba(255,215,0,0.3);
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Outer box — sharp border like the image */
+  .compass-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    border: 2px solid rgba(255,255,255,0.18);
+    position: relative;
+    min-height: 620px;
+  }
+
+  /* The two dividing lines (cross) */
+  .compass-grid::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0; right: 0;
+    height: 2px;
+    background: rgba(255,255,255,0.18);
+    z-index: 1;
+  }
+  .compass-grid::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0; bottom: 0;
+    width: 2px;
+    background: rgba(255,255,255,0.18);
+    z-index: 1;
+  }
+
+  /* Center compass rose — sits exactly at the cross */
+  .compass-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    width: 130px;
+    height: 130px;
+    background: var(--bg);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 8px var(--bg);
+  }
+
+  .compass-rose {
+    width: 110px;
+    height: 110px;
+    animation: rotateSlow 30s linear infinite;
+    filter: drop-shadow(0 0 16px rgba(77,159,255,0.7));
+  }
+
+  @keyframes rotateSlow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  /* Each quadrant card */
+  .c-card {
+    background: transparent;
+    padding: 0;
+    cursor: default;
+    transition: background 0.35s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .c-card:hover { background: rgba(255,255,255,0.025); }
+
+  .c-card.worries:hover { background: rgba(255,107,107,0.04); }
+  .c-card.needs:hover   { background: rgba(77,159,255,0.04); }
+  .c-card.stance:hover  { background: rgba(167,139,250,0.04); }
+  .c-card.excited:hover { background: rgba(0,255,178,0.04); }
+
+  /* Header bar — like in the original image */
+  .c-card-header {
+    padding: 10px 16px;
+    margin-bottom: 0;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .worries .c-card-header  { background: rgba(255,107,107,0.12); }
+  .needs .c-card-header    { background: rgba(77,159,255,0.12); }
+  .stance .c-card-header   { background: rgba(167,139,250,0.12); }
+  .excited .c-card-header  { background: rgba(0,255,178,0.12); padding-left: 80px; }
+
+  .c-icon {
+    font-size: 15px;
+    flex-shrink: 0;
+    transition: transform 0.3s ease;
+  }
+  .c-card:hover .c-icon { transform: scale(1.2); }
+
+  .c-card-title {
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .worries .c-card-title  { color: var(--worries); }
+  .needs .c-card-title    { color: var(--needs); }
+  .stance .c-card-title   { color: var(--stance); }
+  .excited .c-card-title  { color: var(--excited); }
+
+  .c-body {
+    padding: 16px 18px;
+  }
+  .stance .c-body  { padding-right: 80px; }
+  .excited .c-body { padding-left: 80px; }
+
+  .c-question {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    line-height: 1.6;
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .c-answer {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.75);
+    line-height: 1.7;
+  }
+  .c-answer p { margin-bottom: 8px; }
+  .c-answer ol { padding-left: 18px; }
+  .c-answer ol li { margin-bottom: 6px; }
+  .c-answer strong { color: #fff; }
+
+
+
+  /* Hover border glow on quadrant edges */
+  .c-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+  }
+  .c-card:hover::after { opacity: 1; }
+  .worries::after  { box-shadow: inset 2px 2px 0 var(--worries); }
+  .needs::after    { box-shadow: inset -2px 2px 0 var(--needs); }
+  .stance::after   { box-shadow: inset 2px -2px 0 var(--stance); }
+  .excited::after  { box-shadow: inset -2px -2px 0 var(--excited); }
+
+  /* Extra sections */
+  .extra-section, .credits-section {
+    margin-bottom: 48px;
+    animation: fadeIn 0.8s 0.7s ease both;
+  }
+
+  .action-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    display: flex;
+    gap: 0;
+    min-height: 240px;
+  }
+
+  .action-img-wrap {
+    position: relative;
+    width: 340px;
+    flex-shrink: 0;
+    background: rgba(255,255,255,0.03);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-right: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .action-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* shown only when src is placeholder */
+  .action-img[src="YOUR_IMAGE_HERE.jpg"] { display: none; }
+  .action-img[src="YOUR_IMAGE_HERE.jpg"] ~ .action-img-placeholder { display: flex; }
+
+  .action-img-placeholder {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.25);
+    padding: 24px;
+    text-align: center;
+  }
+
+  .action-text {
+    padding: 28px 32px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: rgba(255,255,255,0.65);
+    line-height: 1.8;
+    display: flex;
+    align-items: center;
+  }
+
+  .credits-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px;
+  }
+
+  .credits-note {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .credits-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .credits-list li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.6);
+    padding-left: 16px;
+    position: relative;
+    line-height: 1.6;
+  }
+
+  .credits-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+  }
+
+  @media (max-width: 700px) {
+    .action-card { flex-direction: column; }
+    .action-img-wrap { width: 100%; height: 200px; border-right: none; border-bottom: 1px solid var(--border); }
+  }
+
+  /* What It Took button */
+  .wit-wrap {
+    text-align: center;
+    margin: 12px 0 40px;
+    animation: fadeIn 0.8s 0.9s ease both;
+  }
+
+  .wit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 11px 24px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  .wit-btn:hover {
+    color: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 0 20px rgba(0,255,178,0.12);
+  }
+  .wit-arrow {
+    transition: transform 0.3s ease;
+  }
+  .wit-btn:hover .wit-arrow { transform: translateX(4px); }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    animation: fadeIn 0.8s 1s ease both;
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .compass-grid {
+      display: flex;
+      flex-direction: column;
+      border: none;
+    }
+    .compass-grid::before, .compass-grid::after { display: none; }
+    .compass-center { display: none; }
+    .c-card {
+      border: 1px solid rgba(255,255,255,0.1) !important;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .c-card::after { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="cg cg1"></div>
+<div class="cg cg2"></div>
+
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="badge">Spring Break Homework · UOI</div>
+    <h1>What You Eat<br>Matters!</h1>
+  </div>
+
+  <!-- Info strip -->
+  <div class="section-label">// Homework Info</div>
+  <div class="info-strip">
+    <div class="info-card"><div class="label">Subject</div><div class="value">UOI</div></div>
+    <div class="info-card"><div class="label">Chart</div><div class="value">Compass Points</div></div>
+  </div>
+
+  <!-- Compass Points Grid -->
+  <div class="section-label">// Compass Points Chart</div>
+  <div class="compass-wrapper">
+    <div class="compass-title">
+      <span class="tag">⚡ What You Eat Matters!</span>
+    </div>
+
+    <div class="compass-grid">
+
+      <!-- WORRIES - NW -->
+      <div class="c-card worries">
+        <div class="c-card-header">
+          <div class="c-icon">⚠️</div>
+          <div class="c-card-title">Worries</div>
+        </div>
+        <div class="c-body">
+          <p class="c-question">What challenges might come in the way of making more sustainable food choices? How can we overcome them?</p>
+          <div class="c-answer">
+            <p>The challenges that may occur are:</p>
+            <ol>
+              <li><strong>Cost</strong> — Organic food costs a lot, but is sustainable as it's not factory-made, causing less pollution.</li>
+              <li><strong>Animals</strong> — At least 1 animal is killed every 60 seconds globally, and less than 0.01% of cases are reported.</li>
+              <li><strong>Workers</strong> — Many are overworked with below-median wages. McDonald's makes ~$53B/year while workers earn under $20,000.</li>
+              <li><strong>Public Health & Food Safety</strong> — FSSAI (India) has only $70M vs USDA's $200B, and 500 employees vs 100,000 — yet covers a far larger population.</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- NEEDS - NE -->
+      <div class="c-card needs">
+        <div class="c-card-header">
+          <div class="c-icon">❓</div>
+          <div class="c-card-title">Needs</div>
+        </div>
+        <div class="c-body">
+          <p class="c-question">What questions do you still have? What more would you like to learn?</p>
+          <div class="c-answer">
+            <ol>
+              <li>How will this problem escalate in the future?</li>
+              <li>Are there any major events or protests which have happened to promote sustainable food choices?</li>
+            </ol>
+          </div>
+        </div>
+      </div>
+
+      <!-- STANCE - SW -->
+      <div class="c-card stance">
+        <div class="c-card-header">
+          <div class="c-icon">💡</div>
+          <div class="c-card-title">Stance</div>
+        </div>
+        <div class="c-body">
+          <p class="c-question">What do you think about the current food habits? What steps can you and your family take to be more sustainable?</p>
+          <div class="c-answer">
+            <p>Promoting and implementing sustainable food choices is essential — animal cruelty, overworking, and food safety issues all feed into a cycle that ultimately affects us as humans.</p>
+            <p style="margin-top:16px;">My family orders organic food, though I recognise this isn't an option for everyone.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXCITED - SE -->
+      <div class="c-card excited">
+        <div class="c-card-header">
+          <div class="c-icon">🚀</div>
+          <div class="c-card-title">Excited</div>
+        </div>
+        <div class="c-body">
+          <p class="c-question">What new ideas or insights did you find interesting? What aspects of food sustainability inspire you?</p>
+          <div class="c-answer">
+            <p>The most interesting insight was that everything is connected in a cycle. For example, through politics and economics, FSSAI's budget is defined — and with limited funding comes limited resources, which ultimately affects the safety and quality of our food.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Center compass rose -->
+      <div class="compass-center">
+        <svg class="compass-rose" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- Outer ring -->
+          <circle cx="50" cy="50" r="48" fill="none" stroke="#4d9fff" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>
+          <circle cx="50" cy="50" r="38" fill="none" stroke="#00ffb2" stroke-width="0.8" opacity="0.4"/>
+          <!-- 8 points -->
+          <polygon points="50,2 54,46 50,50 46,46" fill="#4d9fff" opacity="0.9"/>
+          <polygon points="50,98 54,54 50,50 46,54" fill="#4d9fff" opacity="0.7"/>
+          <polygon points="2,50 46,46 50,50 46,54" fill="#4d9fff" opacity="0.7"/>
+          <polygon points="98,50 54,46 50,50 54,54" fill="#4d9fff" opacity="0.9"/>
+          <!-- Diagonals -->
+          <polygon points="15,15 48,47 50,50 47,48" fill="#00ffb2" opacity="0.7"/>
+          <polygon points="85,15 52,47 50,50 53,48" fill="#00ffb2" opacity="0.5"/>
+          <polygon points="15,85 48,53 50,50 47,52" fill="#00ffb2" opacity="0.5"/>
+          <polygon points="85,85 52,53 50,50 53,52" fill="#00ffb2" opacity="0.7"/>
+          <!-- Center dot -->
+          <circle cx="50" cy="50" r="5" fill="#05070d" stroke="#00ffb2" stroke-width="1.5"/>
+          <circle cx="50" cy="50" r="2" fill="#00ffb2"/>
+          <!-- N/S/E/W labels -->
+          <text x="50" y="13" text-anchor="middle" fill="#fff" font-size="8" font-family="JetBrains Mono" font-weight="700">N</text>
+          <text x="50" y="93" text-anchor="middle" fill="#fff" font-size="8" font-family="JetBrains Mono" font-weight="700">S</text>
+          <text x="91" y="53" text-anchor="middle" fill="#fff" font-size="8" font-family="JetBrains Mono" font-weight="700">E</text>
+          <text x="9" y="53" text-anchor="middle" fill="#fff" font-size="8" font-family="JetBrains Mono" font-weight="700">W</text>
+        </svg>
+      </div>
+
+    </div><!-- /compass-grid -->
+  </div><!-- /compass-wrapper -->
+
+  <!-- Action I Took -->
+  <div class="section-label">// Action I Took</div>
+  <div class="extra-section">
+    <div class="action-card">
+      <div class="action-img-wrap">
+        <!-- Replace src below with your image path -->
+        <img src="YOUR_IMAGE_HERE.jpg" alt="Action I Took" class="action-img" />
+        <div class="action-img-placeholder">📷 Replace src with your image</div>
+      </div>
+      <div class="action-text">
+        <p>Add your description of the action you took here.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wit-wrap">
+    <a href="what-it-took.html" class="wit-btn">
+      What It Took <span class="wit-arrow">→</span>
+    </a>
+  </div>
+
+  <footer>
+    UOI · What You Eat Matters · Spring Break Homework · Compass Points
+  </footer>
+
+</div><!-- /container -->
+
+<script>
+  // Subtle card hover effect
+  document.querySelectorAll('.c-card').forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      card.style.zIndex = '2';
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.zIndex = '';
+    });
+  });
+</script>
+
+</body>
+</html>
