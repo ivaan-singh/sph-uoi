@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What It Took — UOI</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #05070d;
+    --green: #00ffb2;
+    --blue: #4d9fff;
+    --card-bg: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Syne', sans-serif;
+    color: #fff;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,178,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,178,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    animation: gridShift 20s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  @keyframes gridShift {
+    0% { transform: translate(0,0); }
+    100% { transform: translate(60px,60px); }
+  }
+
+  .cg { position: fixed; border-radius: 50%; filter: blur(120px); opacity: 0.08; pointer-events: none; z-index: 0; }
+  .cg1 { width: 500px; height: 500px; background: var(--green); top: -150px; left: -150px; }
+  .cg2 { width: 400px; height: 400px; background: var(--blue); bottom: -120px; right: -120px; }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 64px;
+    animation: fadeDown 0.8s ease both;
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-30px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .badge {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--green);
+    border: 1px solid var(--green);
+    padding: 6px 16px;
+    border-radius: 2px;
+    margin-bottom: 20px;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(0,255,178,0.3); }
+    50%      { box-shadow: 0 0 0 8px rgba(0,255,178,0); }
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1px;
+    background: linear-gradient(135deg, #fff 30%, var(--green) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.35);
+    letter-spacing: 1px;
+  }
+
+  /* Section label */
+  .section-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--blue);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: fadeIn 0.8s 0.3s ease both;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, var(--blue), transparent);
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── STATS ─────────────────────────────────── */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 16px;
+    margin-bottom: 56px;
+    animation: fadeIn 0.8s 0.4s ease both;
+  }
+
+  .stat-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px 24px 20px;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat-card:hover {
+    border-color: var(--green);
+    transform: translateY(-3px);
+  }
+
+  .stat-header {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.35);
+    margin-bottom: 14px;
+  }
+
+  .stat-value-wrap {
+    min-height: 52px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  .stat-value {
+    font-size: 2.6rem;
+    font-weight: 800;
+    color: var(--green);
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .stat-value.revealed {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .stat-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+    margin-top: 6px;
+    opacity: 0;
+    transition: opacity 0.5s 0.15s ease;
+  }
+  .stat-sub.revealed { opacity: 1; }
+
+  .reveal-btn {
+    margin-top: 18px;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    color: rgba(255,255,255,0.4);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .reveal-btn:hover {
+    border-color: var(--green);
+    color: var(--green);
+    box-shadow: 0 0 12px rgba(0,255,178,0.15);
+  }
+  .reveal-btn.done {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .reveal-btn .arrow { transition: transform 0.3s ease; }
+  .reveal-btn:hover .arrow { transform: translateX(3px); }
+
+  /* ── CREDITS ────────────────────────────────── */
+  .list-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px 32px 20px;
+    margin-bottom: 48px;
+    animation: fadeIn 0.8s 0.5s ease both;
+    transition: border-color 0.3s ease, transform 0.3s ease;
+  }
+  .list-section:hover {
+    border-color: rgba(77,159,255,0.4);
+    transform: translateY(-2px);
+  }
+
+  .list-count {
+    margin-top: 20px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.2);
+  }
+
+  .entry-list {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .entry-list li {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    padding-left: 20px;
+    position: relative;
+    line-height: 1.7;
+    transition: color 0.2s ease;
+  }
+  .entry-list li:hover { color: rgba(255,255,255,0.85); }
+  .entry-list li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--green);
+  }
+  .entry-list li a {
+    color: var(--blue);
+    text-decoration: none;
+    word-break: break-all;
+    transition: color 0.2s ease;
+  }
+  .entry-list li a:hover { color: var(--green); }
+
+  /* ── FOOTER ─────────────────────────────────── */
+  .wit-wrap {
+    text-align: center;
+    margin: 12px 0 40px;
+    animation: fadeIn 0.8s 0.9s ease both;
+  }
+  .wit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.45);
+    border: 1px solid rgba(255,255,255,0.1);
+    padding: 11px 24px;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+  }
+  .wit-btn:hover {
+    color: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 0 20px rgba(0,255,178,0.12);
+  }
+  .wit-arrow { transition: transform 0.3s ease; }
+
+  /* ── FOOTER ─────────────────────────────────── */
+  footer {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: rgba(255,255,255,0.2);
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    animation: fadeIn 0.8s 1s ease both;
+  }
+</style>
+</head>
+<body>
+
+<div class="cg cg1"></div>
+<div class="cg cg2"></div>
+
+<div class="container">
+
+  <div class="header">
+    <div class="badge">Spring Break Homework · UOI</div>
+    <h1>What It Took</h1>
+    <p class="subtitle">Stats · Credits · Tools</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="section-label">// Stats</div>
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <div class="stat-header">Total lines of code:</div>
+      <div class="stat-value-wrap">
+        <div class="stat-value" id="val-lines">0</div>
+        <div class="stat-sub" id="sub-lines">across 2 files</div>
+      </div>
+      <button class="reveal-btn" onclick="revealStat('lines', 647, 'across 2 files')">
+        Reveal <span class="arrow">›</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Credits -->
+  <div class="section-label">// Credits</div>
+  <div class="list-section">
+    <ul class="entry-list">
+      <li><a href="https://www.business-standard.com/article/economy-policy/fssai-budget-for-2022-23-lower-than-2019-20-allocation-122030700982_1.html" target="_blank">business-standard.com — FSSAI budget 2022-23</a></li>
+      <li><a href="https://fssai.gov.in/flipbook.php?bookid=460&doc2=0#book2/5" target="_blank">fssai.gov.in — Flipbook</a></li>
+      <li><a href="https://fssai.gov.in/knowledge-hub.php?hubname=Annual-Report" target="_blank">fssai.gov.in — Annual Report</a></li>
+      <li><a href="https://www.ers.usda.gov/publications/pub-details?pubid=112883" target="_blank">ers.usda.gov — ERS Publication</a></li>
+      <li><a href="https://www.usda.gov/sites/default/files/documents/usda-fy-2024-annual-performance-report.pdf" target="_blank">usda.gov — FY 2024 Annual Performance Report</a></li>
+      <li><a href="https://www.usda.gov/sites/default/files/documents/2024-usda-budget-summary.pdf" target="_blank">usda.gov — 2024 Budget Summary</a></li>
+      <li><a href="https://www.usda.gov/about-usda/general-information/staff-offices/office-budget-and-program-analysis/budget-summary" target="_blank">usda.gov — Budget Summary Overview</a></li>
+      <li><a href="https://www.bls.gov/oes/2023/may/oes353023.html" target="_blank">bls.gov — OES May 2023 Wage Data</a></li>
+      <li><a href="https://fssai.gov.in/upload/uploadfiles/files/Budget%20Details.pdf" target="_blank">fssai.gov.in — Budget Details PDF</a></li>
+      <li><a href="https://fssai.gov.in/cms/budget.php" target="_blank">fssai.gov.in — Budget Page</a></li>
+      <li><a href="https://foodprint.org" target="_blank">foodprint.org — FoodPrint</a></li>
+    </ul>
+    <div class="list-count">11 sources used</div>
+  </div>
+
+  <!-- Tools -->
+  <div class="section-label">// Tools</div>
+  <div class="list-section">
+    <ul class="entry-list">
+      <li><a href="https://claude.ai/new" target="_blank">claude.ai — AI assistant</a></li>
+      <li><a href="https://github.com" target="_blank">github.com — Hosting</a></li>
+    </ul>
+    <div class="list-count">2 tools used</div>
+  </div>
+
+  <div class="wit-wrap">
+    <a href="index.html" class="wit-btn">
+      <span class="wit-arrow" style="transform:rotate(180deg); display:inline-block;">→</span> Back to Main Page
+    </a>
+  </div>
+
+  <footer>
+    UOI · What It Took · Spring Break Homework
+  </footer>
+
+</div>
+
+<script>
+  function revealStat(id, target, subText) {
+    const valEl = document.getElementById('val-' + id);
+    const subEl = document.getElementById('sub-' + id);
+    const btn   = valEl.closest('.stat-card').querySelector('.reveal-btn');
+
+    btn.classList.add('done');
+
+    // count-up animation
+    const duration = 900;
+    const start = performance.now();
+    const isSmall = target <= 10;
+
+    function step(now) {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease out
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(eased * target);
+      valEl.textContent = current.toLocaleString();
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        valEl.textContent = target.toLocaleString();
+      }
+    }
+
+    requestAnimationFrame(step);
+    valEl.classList.add('revealed');
+    subEl.classList.add('revealed');
+  }
+
+  // auto-update total lines: this file's lines + index.html's lines
+  // Replace the second number below with what-it-took.html's actual line count once saved
+  const INDEX_LINES = 647;
+  const THIS_LINES  = 404;
+  const total = INDEX_LINES + THIS_LINES; // 1051
+  // patch the reveal to use real total
+  document.querySelector('[onclick*="lines"]').setAttribute(
+    'onclick', `revealStat('lines', ${total}, 'across 2 files')`
+  );
+</script>
+
+</body>
+</html>
